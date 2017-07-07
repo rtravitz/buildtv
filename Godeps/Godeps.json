@@ -1,0 +1,15 @@
+{
+	"ImportPath": "github.com/rtravitz/buildtv",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Packages": [
+		"github.com/go-chi/chi"
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-chi/chi",
+			"Comment": "v3.0.0-8-g316a237",
+			"Rev": "316a2378f7d5e8b76526c5dfc44b33ae892362a7"
+		}
+	]
+}
