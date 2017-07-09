@@ -17,10 +17,9 @@ type Status struct {
 var status = Status{"neutral"}
 
 var images = map[string][]string{
-	"success":   []string{"letsgo.jpg", "successkid.jpg"},
-	"fail":      []string{"simply.jpg"},
-	"neutral":   []string{"http://chillestmonkey.com/img/monkey.gif"},
-	"superfail": []string{"thisisfine.png"},
+	"success": []string{"letsgo.jpg", "successkid.jpg"},
+	"fail":    []string{"simply.jpg", "thisisfine.png", "kubi.jpg"},
+	"neutral": []string{"http://chillestmonkey.com/img/monkey.gif"},
 }
 
 var upgrader = websocket.Upgrader{
