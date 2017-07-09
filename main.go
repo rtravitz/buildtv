@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
 	"github.com/gorilla/websocket"
 )
 
@@ -17,8 +16,8 @@ type Status struct {
 var status = Status{"neutral"}
 
 var images = map[string][]string{
-	"success": []string{"letsgo.jpg", "successkid.jpg"},
-	"fail":    []string{"simply.jpg", "thisisfine.png", "kubi.jpg"},
+	"success": []string{"letsgo.jpg", "successkid.jpg", "joe.jpg"},
+	"fail":    []string{"simply.jpg", "thisisfine.png", "kubi.jpg", "clouddude.jpg"},
 	"neutral": []string{"http://chillestmonkey.com/img/monkey.gif"},
 }
 
@@ -29,15 +28,10 @@ var upgrader = websocket.Upgrader{
 }
 
 func main() {
-	r := chi.NewRouter()
-	r.Get("/", serveHome)
-	r.Get("/ws", socketHandler)
-	r.Post("/status", changeStatus)
-	http.ListenAndServe(":8080", r)
-}
-
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "home.html")
+	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static/"))))
+	http.HandleFunc("/ws", socketHandler)
+	http.HandleFunc("/status", changeStatus)
+	http.ListenAndServe(":1234", nil)
 }
 
 func changeStatus(w http.ResponseWriter, r *http.Request) {
