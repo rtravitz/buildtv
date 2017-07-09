@@ -1,60 +1,77 @@
 package main
 
 import (
-	"html/template"
+	"log"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/gorilla/websocket"
 )
+
+type Status struct {
+	code string
+}
+
+var status = Status{"neutral"}
+
+var images = map[string][]string{
+	"success":   []string{"letsgo.jpg", "successkid.jpg"},
+	"fail":      []string{"simply.jpg"},
+	"neutral":   []string{"monkey.gif"},
+	"superfail": []string{"thisisfine.png"},
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
 
 func main() {
 	r := chi.NewRouter()
-	r.Get("/success", success)
-	r.Get("/fail", fail)
+	r.Get("/", serveHome)
+	r.Get("/ws", socketHandler)
+	r.Post("/status", changeStatus)
 	http.ListenAndServe(":8080", r)
 }
 
-func success(w http.ResponseWriter, r *http.Request) {
-	i := image{"http://chillestmonkey.com/img/monkey.gif"}
-	t, _ := makeTemplate(i)
-	respondWithTemplate(w, t, i)
+func serveHome(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "home.html")
 }
 
-func fail(w http.ResponseWriter, r *http.Request) {
-	i := image{"https://thenib.imgix.net/usq/1d97429f-4a64-4d52-bfdb-c36172c05228/this-is-not-fine-001-dae9d5.png?auto=compress,format&_=dae9d5fc0800f12f5c720be598b6bea6"}
-	t, _ := makeTemplate(i)
-	respondWithTemplate(w, t, i)
+func changeStatus(w http.ResponseWriter, r *http.Request) {
+	text := r.PostFormValue("status")
+	status.code = text
 }
 
-func makeTemplate(i image) (*template.Template, error) {
-	t := template.New("maindisplay.html")
-	t, err := t.Parse(`
-		<head>
-			<style>
-				.image {
-					height: 100%;
-					background: url("{{.Address}}") no-repeat center center fixed;
-					background-size: cover;
-				}
-			</style>
-		</head>
-		<body>
-			<div class='image'></div>
-		</body>
-		`)
-
+func socketHandler(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return
 	}
 
-	return t, nil
+	var previousStatus string
+
+	for {
+		time.Sleep(1 * time.Second)
+		var message []byte
+		if previousStatus != status.code {
+			message = []byte(chooseImage())
+			err = conn.WriteMessage(websocket.TextMessage, message)
+			if err != nil {
+				return
+			}
+		}
+		previousStatus = status.code
+	}
 }
 
-func respondWithTemplate(w http.ResponseWriter, t *template.Template, i image) {
-	w.Header().Set("Content-Type", "text/html")
-	t.Execute(w, i)
-}
-
-type image struct {
-	Address string
+func chooseImage() string {
+	category := images[status.code]
+	rand.Seed(time.Now().Unix())
+	img := category[rand.Intn(len(category))]
+	return img
 }
