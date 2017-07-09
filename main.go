@@ -19,7 +19,7 @@ var status = Status{"neutral"}
 var images = map[string][]string{
 	"success":   []string{"letsgo.jpg", "successkid.jpg"},
 	"fail":      []string{"simply.jpg"},
-	"neutral":   []string{"monkey.gif"},
+	"neutral":   []string{"http://chillestmonkey.com/img/monkey.gif"},
 	"superfail": []string{"thisisfine.png"},
 }
 
