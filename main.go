@@ -16,7 +16,7 @@ type Status struct {
 var status = Status{"neutral"}
 
 var images = map[string][]string{
-	"success": []string{"letsgo.jpg", "successkid.jpg", "joe.jpg"},
+	"success": []string{"letsgo.jpg", "successkid.jpg", "joe.jpg", "miracles.jpg"},
 	"fail":    []string{"simply.jpg", "thisisfine.png", "kubi.jpg", "clouddude.jpg"},
 	"neutral": []string{"http://chillestmonkey.com/img/monkey.gif"},
 }

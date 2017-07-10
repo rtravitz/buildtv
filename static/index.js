@@ -2,7 +2,7 @@ const wsuri = "ws://127.0.0.1:1234/ws"
 
 const checkIfUrlOrFilepath = (imageSrc) => {
   if (imageSrc.indexOf('http') > -1) {
-    return e.data
+    return imageSrc
   } else {
     return "./images/" + imageSrc
   }
