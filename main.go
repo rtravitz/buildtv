@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -52,16 +51,7 @@ func main() {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static/"))))
 	http.HandleFunc("/ws", socketHandler)
 	http.HandleFunc("/status", manualStatusChange)
-	http.HandleFunc("/jobs", jobs)
-	http.ListenAndServe(":1234", nil)
-}
-
-func jobs(w http.ResponseWriter, r *http.Request) {
-	j, err := getHealth(pipeline)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("%s", err))
-	}
-	respondWithJSON(w, http.StatusOK, j)
+	log.Fatal(http.ListenAndServe(":1234", nil))
 }
 
 func manualStatusChange(w http.ResponseWriter, r *http.Request) {
