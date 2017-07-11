@@ -1,40 +1,70 @@
 package main
 
 import (
+	"fmt"
 	"log"
-	"math/rand"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
+var (
+	status   = Status{"neutral"}
+	baseURL  = os.Getenv("JENKINS_URL")
+	token    = os.Getenv("JENKINS_TOKEN")
+	username = os.Getenv("JENKINS_USER")
+	team     = os.Getenv("JENKINS_TEAM")
+	pipeline = os.Getenv("JENKINS_PIPELINE")
+
+	images = map[string][]string{
+		"success": []string{"letsgo.jpg", "successkid.jpg", "joe.jpg", "miracles.jpg"},
+		"fail":    []string{"simply.jpg", "thisisfine.png", "kubi.jpg", "clouddude.jpg"},
+		"neutral": []string{"http://chillestmonkey.com/img/monkey.gif"},
+	}
+
+	upgrader = websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin:     func(r *http.Request) bool { return true },
+	}
+)
+
+//Status represents build status
 type Status struct {
 	code string
 }
 
-var status = Status{"neutral"}
-
-var images = map[string][]string{
-	"success": []string{"letsgo.jpg", "successkid.jpg", "joe.jpg", "miracles.jpg"},
-	"fail":    []string{"simply.jpg", "thisisfine.png", "kubi.jpg", "clouddude.jpg"},
-	"neutral": []string{"http://chillestmonkey.com/img/monkey.gif"},
+//Job is a Jenkins Job Response
+type Job struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
 }
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin:     func(r *http.Request) bool { return true },
+//Health is a Job Health Response
+type Health struct {
+	Description string `json:"description"`
+	Score       int    `json:"score"`
 }
 
 func main() {
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static/"))))
 	http.HandleFunc("/ws", socketHandler)
-	http.HandleFunc("/status", changeStatus)
+	http.HandleFunc("/status", manualStatusChange)
+	http.HandleFunc("/jobs", jobs)
 	http.ListenAndServe(":1234", nil)
 }
 
-func changeStatus(w http.ResponseWriter, r *http.Request) {
+func jobs(w http.ResponseWriter, r *http.Request) {
+	j, err := getHealth(pipeline)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("%s", err))
+	}
+	respondWithJSON(w, http.StatusOK, j)
+}
+
+func manualStatusChange(w http.ResponseWriter, r *http.Request) {
 	text := r.PostFormValue("status")
 	status.code = text
 }
@@ -60,11 +90,4 @@ func socketHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		previousStatus = status.code
 	}
-}
-
-func chooseImage() string {
-	category := images[status.code]
-	rand.Seed(time.Now().Unix())
-	img := category[rand.Intn(len(category))]
-	return img
 }
