@@ -10,12 +10,8 @@ import (
 )
 
 var (
-	status   = Status{"neutral"}
-	baseURL  = os.Getenv("JENKINS_URL")
-	token    = os.Getenv("JENKINS_TOKEN")
-	username = os.Getenv("JENKINS_USER")
-	team     = os.Getenv("JENKINS_TEAM")
-	pipeline = os.Getenv("JENKINS_PIPELINE")
+	status  = Status{"neutral"}
+	baseURL = os.Getenv("JENKINS_URL")
 
 	images = map[string][]string{
 		"success": []string{"letsgo.jpg", "successkid.jpg", "joe.jpg", "miracles.jpg"},
@@ -35,19 +31,9 @@ type Status struct {
 	code string
 }
 
-//Job is a Jenkins Job Response
-type Job struct {
-	Name string `json:"name"`
-	URL  string `json:"url"`
-}
-
-//Health is a Job Health Response
-type Health struct {
-	Description string `json:"description"`
-	Score       int    `json:"score"`
-}
-
 func main() {
+	_ = runCli()
+
 	http.Handle("/", http.StripPrefix("/", http.FileServer(http.Dir("static/"))))
 	http.HandleFunc("/ws", socketHandler)
 	http.HandleFunc("/status", manualStatusChange)

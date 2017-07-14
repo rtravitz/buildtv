@@ -25,3 +25,9 @@ func chooseImage() string {
 	img := category[rand.Intn(len(category))]
 	return img
 }
+
+func addTeamsToUser(u *User, jobs []Job) {
+	for _, job := range jobs {
+		u.teams = append(u.teams, job.Name)
+	}
+}
