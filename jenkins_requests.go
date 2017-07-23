@@ -7,6 +7,9 @@ import (
 	"net/http"
 )
 
+//Jobs is a slice of Job
+type Jobs []Job
+
 //Job is a Jenkins Job Response
 type Job struct {
 	Name string `json:"name"`
@@ -30,7 +33,7 @@ func makeJenkinsRequest(u *User, reqURL string) (*http.Response, error) {
 	return res, err
 }
 
-func getPipelines(u *User, team string) ([]Job, error) {
+func getPipelines(u *User, team string) (Jobs, error) {
 	reqURL := fmt.Sprintf("%s/job/%s/api/json", baseURL, team)
 	fmt.Println(reqURL)
 	res, err := makeJenkinsRequest(u, reqURL)
@@ -39,13 +42,11 @@ func getPipelines(u *User, team string) ([]Job, error) {
 	}
 	defer res.Body.Close()
 
-	j := struct {
-		Jobs []Job
-	}{}
+	var j Jobs
 
 	json.NewDecoder(res.Body).Decode(&j)
 
-	return j.Jobs, nil
+	return j, nil
 }
 
 func getHealth(u *User, team, project string) (Health, error) {
@@ -65,18 +66,17 @@ func getHealth(u *User, team, project string) (Health, error) {
 	return h.HealthReport[0], nil
 }
 
-func getTeams(u *User) ([]Job, error) {
+func getTeams(u *User) (Jobs, error) {
 	reqURL := fmt.Sprintf("%s/api/json", baseURL)
 	res, err := makeJenkinsRequest(u, reqURL)
 	if err != nil {
 		return nil, err
 	}
 	defer res.Body.Close()
-	j := struct {
-		Jobs []Job
-	}{}
+
+	var j Jobs
 
 	json.NewDecoder(res.Body).Decode(&j)
 
-	return j.Jobs, nil
+	return j, nil
 }
